@@ -15,41 +15,43 @@
 Порядок определения, принадлежит ли точка z множеству (традиционно закрашиваемого чёрным цветом) или нет (закрашивается цветом, зависящим от числа итераций) следующий: на каждой итерации вычисляется текущее расстояние — значение модуля |z|, которое затем сравнивается с «критерием бесконечности» (обычно берётся значение, равное 2). 
 Алгоритм в своей основе содержит вышеприведенное соотношение и использует комплексную структуру данных
 #### Реализация алгоритма (псевдокод)
-    struct complex
-    {
-        Re = 0.0;
-        Im = 0.0;
-    };
+```C++
+struct complex
+{
+    Re = 0.0;
+    Im = 0.0;
+};
 
 
-    void mandelbrot (model, max_iterations)
+void mandelbrot (model, max_iterations)
+{
+    for (i = 0; i < model->height; i++)
     {
-        for (i = 0; i < model->height; i++)
+    for (j = 0; j < model->width; j++)
         {
-            for (j = 0; j < model->width; j++)
+            x = Mandelbrot_init.Re_min + Mandelbrot_init.Re_scalar * j;
+	    y = Mandelbrot_init.Im_min + Mandelbrot_init.Im_scalar * i;
+	    
+	    complex z_0 = {x, y};
+	    complex z   = {0, 0};
+	    
+	    counter       = 0;
+	    current_index = 0;
+	    
+	    while (++counter < max_iterations)
             {
-                x = Mandelbrot_init.Re_min + Mandelbrot_init.Re_scalar * j;
-                y = Mandelbrot_init.Im_min + Mandelbrot_init.Im_scalar * i;
-        
-                complex z_0 = {x, y};
-                complex z   = {0, 0};
-
-                counter       = 0;
-                current_index = 0;
-
-                while (++counter < max_iterations)
-                {
-                    if (z^2 >= 4)
-                        break;
+                if (z^2 >= 4)
+		    break;
     
-                    z = next_number(z, z0);
-                }
-
-                current_index = (j + i*model->width)*4;
-                get_color (&model->dots[current_index], counter, max_iterations);
+                z = next_number (z, z0);
             }
+
+            current_index = (j + i*model->width)*4;
+            get_color (&model->dots[current_index], counter, max_iterations);
         }
     }
+}
+```
 Размер вычисляемого множества: 1200х1000 пикселей
 
 #### Результаты измерений (время усреднено для трех запусков тестирующей программмы)
@@ -73,16 +75,17 @@
 Алгоритм использует только целочисленные операции благодаря битовым сдвигам и разделению цвета на две компоненты (красная+синия и зеленая)
 
 #### Реализация алгоритма (псевдокод)
-	alpha = foreground >> 24;
+```C++
+alpha = foreground >> 24;
     
-	red_blue  = background & 0x00FF00FF;
-	green     = background & 0xFF00FF00;
+red_blue  = background & 0x00FF00FF;
+green     = background & 0xFF00FF00;
 
-	red_blue += ((foreground & 0x00FF00FF - red_blue) * alpha) >> 8;
-	green    += ((foreground & 0xFF00FF00 -    green) >> 8) * alpha;
-    
-	out = (red_blue & 0x00FF00FF)  | (green & 0xFF00FF00);
-
+red_blue += ((foreground & 0x00FF00FF - red_blue) * alpha) >> 8;
+green    += ((foreground & 0xFF00FF00 -    green) >> 8) * alpha;
+   
+out = (red_blue & 0x00FF00FF)  | (green & 0xFF00FF00);
+```
 Размер изображения: 512x512
 
 #### Результаты измерений (время усреднено для трех запусков тестирующей программмы)
