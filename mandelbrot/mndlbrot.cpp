@@ -7,26 +7,26 @@
 
 #define DUP4(a) a, a, a, a
 #define DUP8(a) a, a, a, a, a, a, a, a
-
+#define DUP7(a) a, a, a, a, a, a, a
 
 sf::Color mapping[16]
 {
-	sf::Color(66, 30, 15),
-	sf::Color(25, 7, 26),
-	sf::Color(9, 1, 47),
-	sf::Color(4, 4, 73),
-	sf::Color(0, 7, 100),
-	sf::Color(12, 44, 138),
-	sf::Color(24, 82, 177),
-	sf::Color(57, 125, 209),
-	sf::Color(134, 181, 229),
-	sf::Color(211, 236, 248),
-	sf::Color(241, 233, 191),
-	sf::Color(248, 201, 95),
-	sf::Color(255, 170, 0),
-	sf::Color(204, 128, 0),
-	sf::Color(153, 87, 0),
-	sf::Color(106, 52, 3)
+	sf::Color ( 66,  30,  15),
+	sf::Color ( 25,   7,  26),
+	sf::Color (  9,   1,  47),
+	sf::Color (  4,   4,  73),
+	sf::Color (  0,   7, 100),
+	sf::Color ( 12,  44, 138),
+	sf::Color ( 24,  82, 177),
+	sf::Color ( 57, 125, 209),
+	sf::Color (134, 181, 229),
+	sf::Color (211, 236, 248),
+	sf::Color (241, 233, 191),
+	sf::Color (248, 201,  95),
+	sf::Color (255, 170,   0),
+	sf::Color (204, 128,   0),
+	sf::Color (153,  87,   0),
+	sf::Color (106,  52,   3)
 };
 
 complex complex_square (complex number)
@@ -60,46 +60,45 @@ void test_vector_sse (Model *model, const unsigned max_iterations)
     assert (model);
     assert (max_iterations);
 
-	__m128 re_min   = _mm_set_ps1 (Mandelbrot_init.Re_min);
-	__m128 im_min   = _mm_set_ps1 (Mandelbrot_init.Im_min);
-	__m128 re_scale = _mm_set_ps1 (Mandelbrot_init.Re_scalar);
-	__m128 Im_scale = _mm_set_ps1 (Mandelbrot_init.Im_scalar);
-	__m128 incr		= _mm_set_ps  (DUP4 (1));
-	__m128 four     = _mm_set_ps  (DUP4 (4));
+	__m128 re_min   = _mm_set_ps1   (Mandelbrot_init.Re_min);
+	__m128 im_min   = _mm_set_ps1   (Mandelbrot_init.Im_min);
+	__m128 re_scale = _mm_set_ps1   (Mandelbrot_init.Re_scalar);
+	__m128 Im_scale = _mm_set_ps1   (Mandelbrot_init.Im_scalar);
+	__m128 incr		= _mm_set_ps    (DUP4 (1));
+	__m128 four     = _mm_set_ps    (DUP4 (4));
     __m128i fifteen = _mm_set_epi32 (DUP4 (15));
 
     for (unsigned y = 0; y < model->height; y++)
     {
+		__m128 y_4 = _mm_set_ps (DUP4 (y));
         for (unsigned x = 0; x < model->width; x += 4)
         {
 			__m128 x_4 = _mm_set_ps (x + 3, x + 2, x + 1, x);
-			__m128 y_4 = _mm_set_ps (DUP4 (y));
 			__m128 cr  = _mm_add_ps (re_min, _mm_mul_ps (x_4, re_scale));
 			__m128 ci  = _mm_add_ps (im_min, _mm_mul_ps (y_4, Im_scale));
 
 			__m128 zr = _mm_setzero_ps();
 			__m128 zi = _mm_setzero_ps();
 
-			__m128 mmax_iter = _mm_set_ps ((float) max_iterations, (float) max_iterations, \
-										   (float) max_iterations, (float) max_iterations);
+			__m128 mmax_iter = _mm_set_ps (DUP4((float) max_iterations));
 		
 			unsigned iter_count = 0;
-			size_t cur_index = 0;
+			size_t    cur_index = 0;
 
 			__m128 counter = _mm_setzero_ps();
 	
 			while (iter_count++ < max_iterations)
 			{
-				__m128 zr_square = _mm_mul_ps (zr, zr);
-				__m128 zi_square = _mm_mul_ps (zi, zi);
-				__m128 zi_zr     = _mm_mul_ps (zr, zi);
+				__m128 zr_square = _mm_mul_ps   (zr, zr);
+				__m128 zi_square = _mm_mul_ps   (zi, zi);
+				__m128 zi_zr     = _mm_mul_ps   (zr, zi);
 
-				__m128 z_square = _mm_add_ps (zr_square, zi_square);   // a^2 + b^2
-				__m128 mask     = _mm_cmplt_ps (z_square, four);
+				__m128 z_square  = _mm_add_ps   (zr_square, zi_square);   // a^2 + b^2
+				__m128 mask      = _mm_cmplt_ps (z_square, four);
 
 				counter = _mm_add_ps (_mm_and_ps (mask, incr), counter);
 
-				if (_mm_movemask_ps(mask) == 0x00)
+				if (_mm_movemask_ps (mask) == 0x00)
 					break;
 
 				zr = _mm_add_ps (_mm_sub_ps (zr_square, zi_square), cr);
@@ -110,7 +109,7 @@ void test_vector_sse (Model *model, const unsigned max_iterations)
 			uint32_t *index_32 = (uint32_t *) &index;
 
 			cur_index = (x + y*model->width)*4;
-			int mask = _mm_movemask_ps (_mm_cmplt_ps (counter, mmax_iter));
+			int mask  = _mm_movemask_ps (_mm_cmplt_ps (counter, mmax_iter));
 	
 			for (int i = 0; i < 4; i++)
 				if (mask & (1 << i) != 0)
@@ -121,69 +120,68 @@ void test_vector_sse (Model *model, const unsigned max_iterations)
 
 
 
-// void test_vector_avx (Model *model, const unsigned max_iterations)
-// {
-//     assert (model);
-//     assert (max_iterations);
+void test_vector_avx (Model *model, const unsigned max_iterations)
+{
+    assert (model);
+    assert (max_iterations);
 
-// 	__m256 re_min   = _mm256_set_ps1 (Mandelbrot_init.Re_min);
-// 	__m256 im_min   = _mm256_set_ps1 (Mandelbrot_init.Im_min);
-// 	__m256 re_scale = _mm256_set_ps1 (Mandelbrot_init.Re_scalar);
-// 	__m256 Im_scale = _mm256_set_ps1 (Mandelbrot_init.Im_scalar);
-// 	__m256 incr		= _mm256_set_ps  (DUP8 (1));
-// 	__m256 four     = _mm256_set_ps  (DUP8 (4));
-//     __m256i fifteen = _mm256_set_epi32 (DUP8 (15));
+	__m256 re_min   = _mm256_set1_ps (Mandelbrot_init.Re_min);
+	__m256 im_min   = _mm256_set1_ps (Mandelbrot_init.Im_min);
+	__m256 re_scale = _mm256_set1_ps (Mandelbrot_init.Re_scalar);
+	__m256 Im_scale = _mm256_set1_ps (Mandelbrot_init.Im_scalar);
+	__m256 incr		= _mm256_set_ps  (DUP8 (1));
+	__m256 four     = _mm256_set_ps  (DUP8 (4));
+    __m256i fifteen = _mm256_set_epi32 (DUP8 (15));
 
-//     for (unsigned y = 0; y < model->height; y++)
-//     {
-//         for (unsigned x = 0; x < model->width - 8; x += 8)
-//         {
-// 			__m256 x_8 = _mm256_set_ps (x + 7, x + 6, x + 5, x + 4, x + 3, x + 2, x + 1, x);
-// 			__m256 y_8 = _mm256_set_ps (DUP8 (y));
-// 			__m256 cr  = _mm256_add_ps (re_min, _mm256_mul_ps (x_8, re_scale));
-// 			__m256 ci  = _mm256_add_ps (im_min, _mm256_mul_ps (y_8, Im_scale));
+    for (unsigned y = 0; y < model->height; y++)
+    {
+        for (unsigned x = 0; x < model->width - 16; x += 8)
+        {
+			__m256 x_8 = _mm256_set_ps (x + 7, x + 6, x + 5, x + 4, x + 3, x + 2, x + 1, x);
+			__m256 y_8 = _mm256_set_ps (DUP8 (y));
+			__m256 cr  = _mm256_add_ps (re_min, _mm256_mul_ps (x_8, re_scale));
+			__m256 ci  = _mm256_add_ps (im_min, _mm256_mul_ps (y_8, Im_scale));
 
-// 			__m256 zr = _mm256_setzero_ps();
-// 			__m256 zi = _mm256_setzero_ps();
+			__m256 zr = _mm256_setzero_ps();
+			__m256 zi = _mm256_setzero_ps();
 
-// 			__m256 mmax_iter = _mm256_set_ps ((float) max_iterations, (float) max_iterations,
-// 										   (float) max_iterations, (float) max_iterations);
+			__m256 mmax_iter = _mm256_set_ps (DUP8 ((float) max_iterations));
 		
-// 			unsigned iter_count = 0;
-// 			size_t    cur_index = 0;
+			unsigned iter_count = 0;
+			size_t    cur_index = 0;
 
-// 			__m256 counter = _mm256_setzero_ps();
+			__m256 counter = _mm256_setzero_ps();
 	
-// 			while (iter_count++ < max_iterations)
-// 			{
-// 				__m256 zr_square = _mm256_mul_ps (zr, zr);
-// 				__m256 zi_square = _mm256_mul_ps (zi, zi);
-// 				__m256 zi_zr     = _mm256_mul_ps (zr, zi);
+			while (iter_count++ < max_iterations)
+			{
+				__m256 zr_square = _mm256_mul_ps (zr, zr);
+				__m256 zi_square = _mm256_mul_ps (zi, zi);
+				__m256 zi_zr     = _mm256_mul_ps (zr, zi);
 
-// 				__m256 z_square = _mm256_add_ps (zr_square, zi_square); 		  	  // a^2 + b^2
-// 				__m256 mask     = _mm256_cmp_ps (z_square, four);        			  // ? z^2 == 4
+				__m256 z_square = _mm256_add_ps (zr_square, zi_square); 		  	  // a^2 + b^2
+				__m256 mask     = _mm256_cmp_ps (z_square, four, _CMP_LT_OS); 		  // ? z^2 == 4
  
-// 				counter = _mm256_add_ps (_mm256_and_ps (mask, incr), counter);
+				counter = _mm256_add_ps (_mm256_and_ps (mask, incr), counter);
 
-// 				if (_mm256_movemask_ps(mask) == 0x00)
-// 					break;
+				if (_mm256_movemask_ps(mask) == 0x00)
+					break;
 
-// 				zr = _mm256_add_ps (_mm256_sub_ps (zr_square, zi_square), cr);
-// 				zi = _mm256_add_ps (_mm256_add_ps (zi_zr, zi_zr), ci);
-// 			}
+				zr = _mm256_add_ps (_mm256_sub_ps (zr_square, zi_square), cr);
+				zi = _mm256_add_ps (_mm256_add_ps (zi_zr, zi_zr), ci);
+			}
 
-// 			__m256i index  = _mm_and_si256 (_mm256_cvtps_epi32 (counter), fifteen);
-// 			uint32_t *index_32 = (uint32_t *) &index;                                    // unsafe
+			__m256i index  = _mm256_and_si256 (_mm256_cvtps_epi32 (counter), fifteen);
+			uint32_t *index_32 = (uint32_t *) &index;                                    // unsafe
 
-// 			cur_index = (x + y*model->width)*8;
-// 			int mask = _mm256_movemask_ps (_mm256_cmp_ps (counter, mmax_iter));
+			cur_index = (x + y*model->width)*4;
+			int mask = _mm256_movemask_ps (_mm256_cmp_ps (counter, mmax_iter, _CMP_LT_OS));
 	
-// 			for (int i = 0; i < 8; i++)
-// 				if (mask & (1 << i) != 0)
-// 					*((uint32_t *) (model->dots + cur_index + i*8)) = *((uint32_t *) (mapping + index_32[i]));
-//         }
-//     }
-// }
+			for (int i = 0; i < 8; i++)
+				if (mask & (1 << i) != 0)
+					*((uint32_t *) (model->dots + cur_index + i*4)) = *((uint32_t *) (mapping + index_32[i]));
+        }
+    }
+}
 
 
 void print128_int(__m128i var)
@@ -202,16 +200,16 @@ void test_scalar (Model *model, const unsigned max_iterations)
 
     for (unsigned i = 0; i < model->height; i++)
     {
+		float y = Mandelbrot_init.Im_min + Mandelbrot_init.Im_scalar * i;
         for (unsigned j = 0; j < model->width; j++)
         {
             float x = Mandelbrot_init.Re_min + Mandelbrot_init.Re_scalar * j;
-			float y = Mandelbrot_init.Im_min + Mandelbrot_init.Im_scalar * i;
         
 			complex z0 = {x, y};
 			complex z  = {0, 0};
 
 			unsigned iter_count = 0;
-			size_t cur_index = 0;
+			size_t    cur_index = 0;
 
 			while (iter_count < max_iterations)
 			{
@@ -224,8 +222,8 @@ void test_scalar (Model *model, const unsigned max_iterations)
 
 			cur_index = (j + i*model->width)*4;
 			new_get_color (&model->dots[cur_index], iter_count, max_iterations);
-        }
-    }
+		}
+	}
 }
 
 
@@ -246,13 +244,13 @@ void init_model(Model *model, unsigned width, unsigned height)
 	float Re_max =  0.47;
 	float Im_max =  1.12; 
 
-	float Re_scalar = (Re_max - Re_min)/(width  - 1);
-	float Im_scalar = (Im_max - Im_min)/(height - 1);
+	float Re_scale = (Re_max - Re_min)/(width  - 1);
+	float Im_scale = (Im_max - Im_min)/(height - 1);
 
 	Mandelbrot_init = { Re_min,    Re_max,
 						Im_min,    Im_max,
-						Re_scalar, Im_scalar
-   	};
+						Re_scale, Im_scale
+	};
 }
    
 
@@ -291,6 +289,9 @@ void show_model (void (*test_func) (Model *, const unsigned),
 
 	while (test_count--)
 	{
+		test_func (model, 100);
+
+		#ifndef NSEE
 		while (Window->pollEvent(event))
 		{
 			if (event.type == sf::Event::KeyPressed)
@@ -301,7 +302,6 @@ void show_model (void (*test_func) (Model *, const unsigned),
 				}
 			}
 		}
-		test_func (model, 100);
 		Window->clear();
 
 		if (is_visible)
@@ -310,6 +310,7 @@ void show_model (void (*test_func) (Model *, const unsigned),
 			Window->draw (sprite);
 		}
 		Window->display();
+		#endif
 	}
 
     auto end = std::chrono::high_resolution_clock::now();

@@ -44,10 +44,9 @@ void    init_model      (Model *model, unsigned width, unsigned height);
 void    test_scalar     (Model *model, const unsigned max_iterations);
 void    test_vector_sse (Model *model, const unsigned max_iterations);
 void    test_vector_avx (Model *model, const unsigned max_iterations);
+
 void    show_model      (void (*test_func) (Model *, const unsigned),
-                         Model *model, 
+                         Model            *model, 
                          sf::RenderWindow *Window,
-                         const char *test_name);
-
-
+                         const char       *test_name);
 
